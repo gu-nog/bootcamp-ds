@@ -4,6 +4,7 @@ Tabela de conteúdos
    * [Aula Introdutoria](#aula-introdutoria)
    * [Aula 1](#aula-1)
    * [Aula 2](#aula-2)
+   * [Aula 3](#aula-3)
    * [Ferramentas](#tecnologias)
      * [O que são](#descricao-tecnologias)
 <!--te-->
@@ -164,6 +165,65 @@ container: docker container inspect mysqlbd1 - localizar o atributo IPAddress)
       - se der erro na execução vai ter um quadradinho vermelho em uma task da árvore
     - Se você for em actions > delete dag, você apaga só o histórico de execução > log
 
+# Aula 3
+## Tema principal: análise exploratória dos dados - explorando bastante a parte de negócios
+  - Objetivo: extrair insights > inteligência e conhecimento
+### OBSs:
+  - 1o starte os containers
+  - O employees_dataset é a junção de todos atributos, só
+## Passo a passo:
+- ### 1o: coloque o arquivo do notebook 'analise' na pasta notebooks
+  - Nele faremos muitas análises, extraindo vários insights
+  - Funcionamento:
+    - bibliotecas para gráficos: ```seaborn as sns``` e ```matplotlib.pyplot as plt```
+    - 1o - conecta ao minio
+    - 2o - lê o employees_dataset
+    - 3o - reorganiza a ordem das colunas
+    - 4o - tiramos dados nulos
+      - OBS: ver as colunas nulas por coluna: ```df.isnull().sum()```
+    - 5o -  arrumamos as tipagens
+      - converter valores de uma coluna: ```df['col'] = df['col'].astype(tipo)```
+    - 6o - renomeamos as colunas
+- ## Análise estatística: no caso, com a taxa de turnover
+  - Ver No de registros: ```.shape()```
+  - % de turnover: ```.value_counts() / len(df)```
+    - Como vemos, as amostras nesse caso estão desbalanceadas, o que irá interferir na parte de ML
+  - visão geral do df: ```.describe()```
+    - OBS: std é o desvio padrão dos dados
+  - Uma análise já mais inteligente, ver atributos por diferentes turnouvers:
+    ```python
+    v = df.groupby('turnover')
+    v.mean()
+    ```
+    - Apenas suposições para testes
+  - Correlação entre os atributos
+    - matriz de correlação: ```corr = (df.corr())```
+    - mostrar: ```sns.heatmap(corr, xticklabels=corr.columns.values, yticktalbels=corr.columns.values)```
+    - analisar valores:
+      - positivo: 2 sobem juntos
+      - negativo: um sobre, o outro desce
+      - mais longe de 0: maior relação
+    - OBS: cada anormalidade... deve ser analisada e discutida com a equipe de negócios, então sempre anote o que percebe e procure motivos para esses comportamentos
+  - Veja a distribuição dos valores de cada atributo(padrões, picos...)
+  - Aprofunde na relação (com o parâmetro de output) e na distribuição de atributos que você imagina que possa ter relação com o output
+  - OBS: muitas vezes é comum ir tendo no processo ideias de novos atributos..., então volte etapas... se necessário
+  - Use gráficos com pontos ou quadrados para reconhecer grupos/clusters de relação, então você poderá por exemplo tentar prever em qual grupo a pessoa está
+    - #### Nada impede, por exemplo você faça um modelo de classificação desse também, além do preditivo 'principal', ABRA A CABEÇA!!!
+      - exemplo: dar também um modelo para prever com regressão a carga horária futura
+      - Depois coloque essas análises/dados nos buckets
+    - Nesse caso usaremos o KMeans do sklearn.cluster
+      - Instanciá-lo: 
+        ```python
+        KMeans(
+          n_clusters = 3,  # a quantidade de clusters reconhecidos no gráfico
+          random_state = 2
+        )
+        ```
+      - Treinar: ```.fit(x)```, x é filtrado apenas com as colunas que usamos na classificação, no caso, satisfação e nota e, no caso, só as linhas de quem saiu
+      - Iterável com grupo que ficou cada um: kmeans.labels_
+      - sobe pro bucket curated já
+  - Um método adicional para algumas dessas análises automáticas: via pip, sweetvz
+    - importa e dá ```.analyze(df, 'parâmetro de output')``` e ```.show_html()```
 # Tecnologias
 
 As seguintes ferramentas foram usadas na construção dos projetos:
